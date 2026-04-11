@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Alps &amp; Vows — Private Location Journal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#1a1a18;--muted:#6b6b65;--faint:#a0a099;
+  --surface:#fff;--raised:#f5f4f0;
+  --border:rgba(0,0,0,0.08);--border-md:rgba(0,0,0,0.16);
+  --accent:#4a7c59;--accent-light:#e8f0eb;--accent-dark:#2f5239;
+  --gold:#c8a96e;--gold-light:#f5edd8;--danger:#c0392b;
+}
+@media(prefers-color-scheme:dark){:root{
+  --ink:#e8e6df;--muted:#9c9a92;--faint:#6b6965;
+  --surface:#1c1c1a;--raised:#252523;
+  --border:rgba(255,255,255,0.08);--border-md:rgba(255,255,255,0.16);
+  --accent:#5d9970;--accent-light:#1e3328;--accent-dark:#7ab88a;
+  --gold:#d4a96e;--gold-light:#2e2415;--danger:#e05b4b;
+}}
+html,body{height:100%;font-family:'Jost',sans-serif;background:var(--raised);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* LOCK */
+#lock-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;background:var(--surface)}
+.lock-crest{width:72px;height:72px;border:1.5px solid var(--border-md);border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--raised);margin-bottom:28px}
+.lock-title{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;letter-spacing:.04em;color:var(--ink);margin-bottom:6px}
+.lock-title em{font-style:normal;color:var(--accent)}
+.lock-sub{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:40px}
+.lock-card{background:var(--surface);border:1px solid var(--border-md);border-radius:14px;padding:28px 32px;width:100%;max-width:320px;box-shadow:0 4px 32px rgba(0,0,0,.06)}
+.lock-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:block;text-align:left}
+.lock-input{width:100%;padding:13px 16px;font-family:'Jost',sans-serif;font-size:18px;background:var(--raised);border:1px solid var(--border-md);border-radius:8px;color:var(--ink);text-align:center;letter-spacing:.25em;outline:none;transition:border-color .2s;margin-bottom:8px}
+.lock-input:focus{border-color:var(--accent)}
+.lock-input::placeholder{font-size:14px;letter-spacing:.08em;color:var(--faint)}
+.lock-error{font-size:12px;color:var(--danger);min-height:18px;text-align:center;margin-bottom:6px}
+.lock-btn{width:100%;padding:13px;font-family:'Jost',sans-serif;font-size:13px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .2s}
+.lock-btn:hover{background:var(--accent-dark)}
+.lock-hint{font-size:11px;color:var(--faint);margin-top:20px;letter-spacing:.03em}
+
+/* APP SHELL */
+#app{display:none;min-height:100vh}
+.app-layout{max-width:1100px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--surface);box-shadow:0 0 60px rgba(0,0,0,.05)}
+.header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:400}
+.header-brand{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;letter-spacing:.05em;color:var(--ink)}
+.header-brand em{font-style:normal;color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:14px}
+.header-tag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.hdr-btn{background:none;border:1px solid var(--border-md);border-radius:6px;padding:5px 11px;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);cursor:pointer;font-family:'Jost',sans-serif;transition:all .15s}
+.hdr-btn:hover{border-color:var(--accent);color:var(--accent)}
+.settings-bar{padding:9px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--raised)}
+.settings-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:53px;z-index:399}
+.tab{flex:1;padding:13px 8px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;text-align:center;color:var(--muted);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:'Jost',sans-serif;transition:all .18s}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.panel{display:none}.panel.active{display:block}
+
+/* MAP */
+.map-controls{display:flex;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);overflow-x:auto;flex-wrap:wrap;background:var(--surface)}
+.filter-pill{font-size:11px;letter-spacing:.07em;text-transform:uppercase;padding:5px 13px;border-radius:20px;border:1px solid var(--border-md);cursor:pointer;white-space:nowrap;background:var(--surface);color:var(--muted);font-family:'Jost',sans-serif;transition:all .15s}
+.filter-pill:hover{border-color:var(--accent);color:var(--accent)}
+.filter-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.filter-pill.pill-gold.active{background:var(--gold);border-color:var(--gold);color:#fff}
+#map-wrap{width:100%;height:500px}
+#map{width:100%;height:100%}
+.map-footer{padding:10px 16px;font-size:11px;color:var(--faint);letter-spacing:.04em;border-top:1px solid var(--border);background:var(--surface)}
+@media(prefers-color-scheme:dark){#map{filter:brightness(.82) saturate(.85)}}
+
+/* FORMS */
+.panel-inner{padding:24px;position:relative}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--ink);letter-spacing:.02em}
+.add-btn{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent);border-radius:6px;padding:7px 14px;cursor:pointer;font-family:'Jost',sans-serif;font-weight:500;transition:all .15s}
+.add-btn:hover{background:var(--accent);color:#fff}
+.form-wrap{background:var(--raised);border:1px solid var(--border-md);border-radius:12px;padding:20px;margin-bottom:24px;display:none}
+.form-wrap.open{display:block}
+.form-section-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--ink);margin-bottom:16px}
+.form-row{margin-bottom:14px}
+.form-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;display:block}
+.form-input{width:100%;padding:10px 14px;font-family:'Jost',sans-serif;font-size:14px;background:var(--surface);border:1px solid var(--border-md);border-radius:8px;color:var(--ink);outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--accent)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.form-actions{display:flex;gap:10px;justify-content:flex-end}
+.btn-save{padding:9px 20px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s}
+.btn-save:hover{background:var(--accent-dark)}
+.btn-cancel{padding:9px 16px;background:none;color:var(--muted);border:1px solid var(--border-md);border-radius:7px;font-size:12px;cursor:pointer;font-family:'Jost',sans-serif;transition:all .15s}
+.btn-cancel:hover{border-color:var(--muted);color:var(--ink)}
+.btn-ghost{padding:8px 16px;background:none;color:var(--muted);border:1px solid var(--border-md);border-radius:7px;font-size:11px;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.06em;text-transform:uppercase;transition:all .15s}
+.btn-ghost:hover{color:var(--ink);border-color:var(--muted)}
+.btn-danger{padding:8px 16px;background:none;color:var(--danger);border:1px solid rgba(192,57,43,.3);border-radius:7px;font-size:11px;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.06em;text-transform:uppercase;transition:all .15s}
+.btn-danger:hover{background:rgba(192,57,43,.06)}
+
+/* LOCATION LIST */
+.loc-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.loc-item:last-child{border-bottom:none}
+.loc-thumb{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)}
+.loc-thumb-empty{width:52px;height:52px;border-radius:8px;background:var(--raised);flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);color:var(--faint);font-size:18px}
+.loc-info{flex:1;min-width:0}
+.loc-name{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.loc-sub{font-size:12px;color:var(--muted)}
+.loc-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:20px;background:var(--raised);color:var(--muted);border:1px solid var(--border)}
+.tag.t-starred{background:var(--gold-light);color:#8a6430;border-color:rgba(200,169,110,.4)}
+.tag.t-summer{background:#e8f5e9;color:#2e7d32;border-color:#c8e6c9}
+.tag.t-winter{background:#e3f2fd;color:#1565c0;border-color:#bbdefb}
+.tag.t-autumn{background:#fff3e0;color:#e65100;border-color:#ffe0b2}
+.tag.t-spring{background:#fce4ec;color:#880e4f;border-color:#f8bbd0}
+@media(prefers-color-scheme:dark){
+  .tag.t-summer{background:#1a2e1c;color:#81c784;border-color:#2e5030}
+  .tag.t-winter{background:#0d1f2d;color:#64b5f6;border-color:#1a3548}
+  .tag.t-autumn{background:#2d1e0a;color:#ffb74d;border-color:#4a3010}
+  .tag.t-spring{background:#2d1020;color:#f48fb1;border-color:#4a1530}
+}
+.star-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--faint);padding:2px 4px;transition:color .15s;flex-shrink:0;line-height:1}
+.star-btn.active{color:var(--gold)}
+
+/* DETAIL OVERLAY */
+.detail-overlay{position:absolute;inset:0;background:var(--surface);z-index:200;display:none;overflow-y:auto}
+.detail-overlay.open{display:block}
+.detail-hdr{padding:14px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:10;display:flex;align-items:center;justify-content:space-between}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-family:'Jost',sans-serif;letter-spacing:.04em}
+.detail-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--ink);padding:20px 24px 6px;letter-spacing:.02em}
+.detail-body{padding:0 24px 40px}
+.detail-section{margin-top:20px}
+.detail-section-lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.notes-area{width:100%;padding:12px 14px;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:300;background:var(--raised);border:1px solid var(--border-md);border-radius:8px;color:var(--ink);outline:none;resize:vertical;min-height:90px;line-height:1.7;transition:border-color .15s}
+.notes-area:focus{border-color:var(--accent)}
+.detail-actions{display:flex;align-items:center;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);flex-wrap:wrap}
+
+/* PHOTO GRID */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px}
+.photo-thumb-wrap{position:relative;border-radius:8px;overflow:hidden;aspect-ratio:1;cursor:pointer;background:var(--raised)}
+.photo-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.photo-thumb-wrap:hover img{transform:scale(1.04)}
+.photo-delete-btn{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.photo-thumb-wrap:hover .photo-delete-btn{opacity:1}
+.photo-upload-zone{border:1.5px dashed var(--border-md);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;margin-top:8px}
+.photo-upload-zone:hover,.photo-upload-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.upload-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.upload-btn{padding:8px 16px;border-radius:7px;font-size:12px;font-family:'Jost',sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border-md);background:var(--surface);color:var(--muted);transition:all .15s}
+.upload-btn:hover{border-color:var(--accent);color:var(--accent)}
+.upload-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.upload-btn.primary:hover{background:var(--accent-dark)}
+.detail-hero{width:100%;height:240px;object-fit:cover;display:block;cursor:pointer}
+.detail-hero-wrap{position:relative;overflow:hidden;background:var(--raised)}
+.star-overlay{position:absolute;top:12px;right:12px;background:rgba(0,0,0,.4);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:rgba(255,255,255,.6);transition:all .15s}
+.star-overlay.active{color:var(--gold);background:rgba(0,0,0,.5)}
+
+/* OWNER LIGHTBOX */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center}
+#lightbox.open{display:flex}
+#lightbox-img{max-width:92vw;max-height:80vh;object-fit:contain;border-radius:4px}
+#lightbox-caption{color:rgba(255,255,255,.7);font-size:13px;margin-top:14px;font-family:'Cormorant Garamond',serif;font-style:italic;max-width:500px;text-align:center}
+.lb-close{position:absolute;top:18px;right:22px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;opacity:.7;transition:opacity .15s;line-height:1}
+.lb-close:hover{opacity:1}
+.lb-prev,.lb-next{position:absolute;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:32px;cursor:pointer;padding:12px;opacity:.6;transition:opacity .15s;line-height:1}
+.lb-prev:hover,.lb-next:hover{opacity:1}
+.lb-prev{left:10px}.lb-next{right:10px}
+.lb-counter{position:absolute;bottom:18px;color:rgba(255,255,255,.5);font-size:12px;letter-spacing:.08em}
+
+/* TRAIL CARDS */
+.trail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.trail-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 18px 16px 20px;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden}
+.trail-card:hover{border-color:var(--border-md);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.trail-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.trail-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--ink);margin-bottom:4px}
+.trail-desc{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.trail-stats{display:flex;gap:10px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.trail-gold{color:var(--gold)}
+.trail-actions{display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.trail-action-btn{font-size:10px;letter-spacing:.07em;text-transform:uppercase;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;border:1px solid var(--border-md);background:none;color:var(--muted);transition:all .15s}
+.trail-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.trail-action-btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+.trail-detail-overlay{position:absolute;inset:0;background:var(--surface);z-index:200;display:none;overflow-y:auto}
+.trail-detail-overlay.open{display:block}
+.loc-picker{border:1px solid var(--border-md);border-radius:8px;overflow:hidden;max-height:240px;overflow-y:auto}
+.loc-pick-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.loc-pick-item:last-child{border-bottom:none}
+.loc-pick-item:hover{background:var(--raised)}
+.loc-pick-item.selected{background:var(--accent-light)}
+.loc-pick-check{width:16px;height:16px;border-radius:3px;border:1.5px solid var(--border-md);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--accent)}
+.loc-pick-item.selected .loc-pick-check{background:var(--accent);border-color:var(--accent);color:#fff}
+.loc-pick-name{font-size:13px;color:var(--ink)}
+.loc-pick-sub{font-size:11px;color:var(--muted);margin-left:auto}
+.stop-list{margin-top:8px}
+.stop-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--raised);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:grab}
+.stop-item:active{cursor:grabbing;opacity:.7}
+.stop-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:500}
+.stop-name{flex:1;font-size:13px;color:var(--ink)}
+.stop-remove{background:none;border:none;cursor:pointer;color:var(--faint);font-size:16px;line-height:1;padding:2px;transition:color .15s}
+.stop-remove:hover{color:var(--danger)}
+.drag-over{border-color:var(--accent)!important;background:var(--accent-light)!important}
+.color-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s}
+.swatch:hover{transform:scale(1.15)}
+.swatch.active{border-color:var(--ink)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal-box{background:var(--surface);border-radius:14px;padding:28px;width:90%;max-width:380px;border:1px solid var(--border-md);box-shadow:0 8px 40px rgba(0,0,0,.14);max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--ink);margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+
+/* CLIENT VIEW */
+#client-view{display:none;min-height:100vh;background:var(--raised)}
+.cv-wrap{max-width:960px;margin:0 auto;background:var(--surface);min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,.05)}
+.cv-header{padding:28px 32px 20px;border-bottom:1px solid var(--border);text-align:center}
+.cv-brand{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;letter-spacing:.04em;color:var(--ink);margin-bottom:4px}
+.cv-brand em{font-style:normal;color:var(--accent)}
+.cv-subtitle{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.cv-message{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;color:var(--muted);font-style:italic;margin-bottom:16px;display:none}
+.cv-season-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.cv-tab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:6px 16px;border-radius:20px;border:1px solid var(--border-md);cursor:pointer;background:var(--surface);color:var(--muted);font-family:'Jost',sans-serif;transition:all .15s}
+.cv-tab:hover{border-color:var(--accent);color:var(--accent)}
+.cv-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cv-tab.s-summer.active{background:#2e7d32;border-color:#2e7d32}
+.cv-tab.s-winter.active{background:#1565c0;border-color:#1565c0}
+.cv-tab.s-autumn.active{background:#e65100;border-color:#e65100}
+.cv-tab.s-spring.active{background:#880e4f;border-color:#880e4f}
+#cv-map-wrap{width:100%;height:380px}
+#cv-map{width:100%;height:100%}
+@media(prefers-color-scheme:dark){#cv-map{filter:brightness(.82) saturate(.85)}}
+.cv-body{padding:28px 24px 56px}
+.cv-section{margin-bottom:40px}
+.cv-section-hdr{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.cv-section-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.cv-section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--ink)}
+.cv-section-meta{font-size:12px;color:var(--muted);margin-left:auto}
+.cv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.cv-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .15s}
+.cv-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.1);transform:translateY(-2px)}
+.cv-card-img{width:100%;height:180px;object-fit:cover;display:block;background:var(--raised)}
+.cv-card-img-empty{width:100%;height:180px;background:var(--raised);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--faint)}
+.cv-card-body{padding:14px 16px 16px}
+.cv-card-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;color:var(--ink);margin-bottom:3px}
+.cv-card-meta{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.cv-card-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.cv-card-footer{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap}
+.cv-star{color:var(--gold);font-size:13px}
+.cv-photo-count{font-size:11px;color:var(--faint);margin-left:auto}
+.cv-footer{text-align:center;padding:20px;border-top:1px solid var(--border);font-size:11px;color:var(--faint);letter-spacing:.06em}
+/* Client detail sheet */
+#cv-detail{position:fixed;inset:0;background:var(--surface);z-index:500;overflow-y:auto;display:none}
+#cv-detail.open{display:block}
+.cv-detail-close{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:10}
+.cv-img-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:0 24px}
+.cv-img-row img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;transition:transform .15s}
+.cv-img-row img:hover{transform:scale(1.03)}
+/* Client lightbox */
+#cv-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center}
+#cv-lightbox.open{display:flex}
+
+/* MISC */
+.empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;line-height:1.8}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 22px;border-radius:30px;font-size:13px;z-index:1000;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+@media(max-width:600px){
+  .header{padding:14px 16px}.header-tag{display:none}
+  .panel-inner{padding:16px}
+  .detail-body,.detail-name{padding-left:16px;padding-right:16px}
+  .detail-hdr{padding:14px 16px}
+  .form-grid{grid-template-columns:1fr}
+  #map-wrap{height:360px}
+  .trail-grid{grid-template-columns:1fr}
+  .settings-bar{padding:8px 16px}
+  .photo-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+  .cv-grid{grid-template-columns:1fr 1fr}
+  .cv-header{padding:20px 16px 16px}
+  #cv-map-wrap{height:280px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-crest">
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <path d="M16 3L6 8v8c0 6 4 11 10 13 6-2 10-7 10-13V8L16 3z" stroke="#6b6b65" stroke-width="1.3"/>
+      <path d="M11 16.5L14.5 20L21 13" stroke="#6b6b65" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="lock-title">Alps &amp; <em>Vows</em></div>
+  <div class="lock-sub">Private Location Journal &middot; Switzerland</div>
+  <div class="lock-card">
+    <label class="lock-label" for="pin-input">Access code</label>
+    <input class="lock-input" type="password" id="pin-input" placeholder="&middot; &middot; &middot; &middot; &middot; &middot; &middot; &middot;" autocomplete="off"/>
+    <div class="lock-error" id="pin-error"></div>
+    <button class="lock-btn" onclick="tryUnlock()">Enter</button>
+  </div>
+  <p class="lock-hint">Default code: alps2024 &mdash; change in Settings after signing in</p>
+</div>
+
+<!-- OWNER APP -->
+<div id="app">
+<div class="app-layout">
+  <div class="header">
+    <div class="header-brand">Alps &amp; <em>Vows</em></div>
+    <div class="header-right">
+      <span class="header-tag">Private &middot; Switzerland</span>
+      <button class="hdr-btn" onclick="lockApp()">Lock</button>
+    </div>
+  </div>
+  <div class="settings-bar">
+    <span class="settings-label">Settings</span>
+    <button class="btn-ghost" style="font-size:10px;padding:5px 12px" onclick="openChangeCode()">Change code</button>
+    <button class="btn-ghost" style="font-size:10px;padding:5px 12px" onclick="doExport()">Export JSON</button>
+    <button class="btn-ghost" style="font-size:10px;padding:5px 12px" onclick="document.getElementById('import-file').click()">Import JSON</button>
+    <button class="btn-ghost" style="font-size:10px;padding:5px 12px;border-color:var(--gold);color:var(--gold)" onclick="openShareModal()">&#9654; Generate client link</button>
+  </div>
+  <div class="tabs">
+    <button class="tab active" id="tab-map"       onclick="goTab('map')">Map</button>
+    <button class="tab"        id="tab-locations" onclick="goTab('locations')">Locations</button>
+    <button class="tab"        id="tab-trails"    onclick="goTab('trails')">Trails</button>
+  </div>
+
+  <!-- MAP PANEL -->
+  <div id="panel-map" class="panel active">
+    <div class="map-controls" id="map-pills">
+      <button class="filter-pill active"    onclick="setFilter('all',this)">All</button>
+      <button class="filter-pill pill-gold" onclick="setFilter('starred',this)">&#9733; Starred</button>
+    </div>
+    <div id="map-wrap"><div id="map"></div></div>
+    <div class="map-footer">Gold markers = starred &nbsp;&middot;&nbsp; Coloured lines = trails &nbsp;&middot;&nbsp; Click any marker for details</div>
+  </div>
+
+  <!-- LOCATIONS PANEL -->
+  <div id="panel-locations" class="panel">
+    <div class="panel-inner">
+      <div class="section-header">
+        <div class="section-title">All Locations</div>
+        <button class="add-btn" onclick="toggleLocForm()">+ Add location</button>
+      </div>
+      <div class="form-wrap" id="loc-add-form">
+        <div class="form-section-title" id="loc-form-title">New scouting location</div>
+        <input type="hidden" id="f-edit-id"/>
+        <div class="form-row"><label class="form-label">Location name</label><input class="form-input" id="f-name" placeholder="e.g. Oeschinen Lake viewpoint"/></div>
+        <div class="form-row"><label class="form-label">Description</label><input class="form-input" id="f-desc" placeholder="Light quality, mood, access, best time of day..."/></div>
+        <div class="form-grid">
+          <div><label class="form-label">Latitude</label><input class="form-input" id="f-lat" type="number" step="any" placeholder="46.5138"/></div>
+          <div><label class="form-label">Longitude</label><input class="form-input" id="f-lng" type="number" step="any" placeholder="7.7338"/></div>
+        </div>
+        <div class="form-grid">
+          <div><label class="form-label">Best season</label>
+            <select class="form-input" id="f-season"><option>All year</option><option>Summer</option><option>Winter</option><option>Spring</option><option>Autumn</option></select></div>
+          <div><label class="form-label">Region / label</label><input class="form-input" id="f-region" placeholder="e.g. Bernese Oberland"/></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="closeLocForm()">Cancel</button>
+          <button class="btn-save"   onclick="saveLocForm()">Save location</button>
+        </div>
+      </div>
+      <div id="loc-list"></div>
+      <div class="detail-overlay" id="loc-detail">
+        <div class="detail-hdr">
+          <button class="back-btn" onclick="closeLocDetail()">&#8592; Back</button>
+          <button class="btn-ghost" style="font-size:10px;padding:5px 12px" onclick="editLocFromDetail()">Edit</button>
+        </div>
+        <div id="ld-hero-wrap"></div>
+        <div class="detail-name" id="ld-name"></div>
+        <div class="detail-body" id="ld-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRAILS PANEL -->
+  <div id="panel-trails" class="panel">
+    <div class="panel-inner">
+      <div class="section-header">
+        <div class="section-title">Photo Trails</div>
+        <button class="add-btn" onclick="openTrailForm(null)">+ New trail</button>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Trails link your scouted locations in order and appear as coloured lines on the map.</p>
+      <div id="trail-list"></div>
+      <div class="trail-detail-overlay" id="trail-edit-overlay">
+        <div class="detail-hdr">
+          <button class="back-btn" onclick="closeTrailForm()">&#8592; Back</button>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;color:var(--ink)" id="trail-form-heading">New trail</div>
+          <div style="width:60px"></div>
+        </div>
+        <div style="padding:20px 24px 40px">
+          <input type="hidden" id="tf-id"/>
+          <div class="form-row"><label class="form-label">Trail name</label><input class="form-input" id="tf-name" placeholder="e.g. Bernese Highlands Loop"/></div>
+          <div class="form-row"><label class="form-label">Description</label><input class="form-input" id="tf-desc" placeholder="One-line summary..."/></div>
+          <div class="form-row"><label class="form-label">Trail colour</label><div class="color-swatches" id="color-swatches"></div></div>
+          <div class="form-row" style="margin-top:20px">
+            <label class="form-label">Add locations to trail</label>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Click to add, drag to reorder.</p>
+            <div class="loc-picker" id="loc-picker"></div>
+          </div>
+          <div class="form-row" id="stop-list-wrap" style="display:none">
+            <label class="form-label">Trail order <span style="font-weight:400;text-transform:none;letter-spacing:0">(drag to reorder)</span></label>
+            <div class="stop-list" id="stop-list"></div>
+          </div>
+          <div class="form-actions" style="margin-top:24px">
+            <button class="btn-cancel" onclick="closeTrailForm()">Cancel</button>
+            <button class="btn-save"   onclick="saveTrailForm()">Save trail</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- app-layout -->
+</div><!-- app -->
+
+<!-- CLIENT VIEW -->
+<div id="client-view">
+  <div class="cv-wrap">
+    <div class="cv-header">
+      <div class="cv-brand">Alps &amp; <em>Vows</em></div>
+      <div class="cv-subtitle" id="cv-subtitle">Switzerland Elopement Locations</div>
+      <div class="cv-message" id="cv-message"></div>
+      <div class="cv-season-tabs" id="cv-season-tabs"></div>
+    </div>
+    <div id="cv-map-wrap"><div id="cv-map"></div></div>
+    <div class="cv-body">
+      <div id="cv-trail-sections"></div>
+      <div id="cv-ungrouped"></div>
+    </div>
+    <div class="cv-footer">Alps &amp; Vows &middot; Switzerland Elopement Photography</div>
+  </div>
+</div>
+
+<!-- CLIENT DETAIL SHEET -->
+<div id="cv-detail">
+  <div class="cv-detail-close">
+    <button onclick="cvCloseDetail()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-family:'Jost',sans-serif">&#8592; Back</button>
+    <span id="cv-detail-star" style="color:var(--gold);font-size:14px"></span>
+  </div>
+  <div id="cv-detail-body"></div>
+</div>
+
+<!-- OWNER LIGHTBOX -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLightbox()">&#215;</button>
+  <button class="lb-prev"  onclick="lightboxNav(-1)">&#8249;</button>
+  <img id="lightbox-img" src="" alt=""/>
+  <button class="lb-next"  onclick="lightboxNav(1)">&#8250;</button>
+  <div id="lightbox-caption" class="lb-caption" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:14px;font-family:'Cormorant Garamond',serif;font-style:italic;max-width:500px;text-align:center"></div>
+  <div id="lightbox-counter" class="lb-counter"></div>
+</div>
+
+<!-- CLIENT LIGHTBOX -->
+<div id="cv-lightbox">
+  <button class="lb-close" onclick="cvCloseLightbox()">&#215;</button>
+  <button class="lb-prev"  onclick="cvLightboxNav(-1)">&#8249;</button>
+  <img id="cv-lb-img" src="" alt="" style="max-width:92vw;max-height:80vh;object-fit:contain;border-radius:4px"/>
+  <button class="lb-next"  onclick="cvLightboxNav(1)">&#8250;</button>
+  <div id="cv-lb-caption" style="color:rgba(255,255,255,.7);font-size:13px;margin-top:14px;font-family:'Cormorant Garamond',serif;font-style:italic;max-width:500px;text-align:center"></div>
+  <div id="cv-lb-counter" class="lb-counter"></div>
+</div>
+
+<!-- CHANGE CODE MODAL -->
+<div class="modal-bg" id="modal-code">
+  <div class="modal-box">
+    <div class="modal-title">Change access code</div>
+    <div class="form-row"><label class="form-label">Current code</label><input class="form-input" type="password" id="m-cur"/></div>
+    <div class="form-row"><label class="form-label">New code (min 4 chars)</label><input class="form-input" type="password" id="m-new"/></div>
+    <div class="form-row"><label class="form-label">Confirm new code</label><input class="form-input" type="password" id="m-conf"/></div>
+    <div class="lock-error" id="m-err"></div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-code')">Cancel</button><button class="btn-save" onclick="doChangeCode()">Update code</button></div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-bg" id="modal-share">
+  <div class="modal-box">
+    <div class="modal-title">Generate client link</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px">A read-only, password-free link. Clients see a beautiful gallery — no private notes, no editing.</p>
+    <div class="form-row"><label class="form-label">Filter by season</label>
+      <select class="form-input" id="share-season"><option value="all">All seasons</option><option value="summer">Summer</option><option value="winter">Winter</option><option value="spring">Spring</option><option value="autumn">Autumn</option></select></div>
+    <div class="form-row"><label class="form-label">Filter by trail (optional)</label>
+      <select class="form-input" id="share-trail"><option value="all">All trails &amp; locations</option></select></div>
+    <div class="form-row"><label class="form-label">Starred locations only</label>
+      <select class="form-input" id="share-starred"><option value="0">Show all</option><option value="1">Starred only</option></select></div>
+    <div class="form-row"><label class="form-label">Message to client (optional)</label>
+      <input class="form-input" id="share-msg" placeholder="e.g. Here are some ideas for your July elopement!"/></div>
+    <div id="share-result" style="display:none;margin-top:4px">
+      <label class="form-label">Your client link</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="form-input" id="share-link-out" readonly style="font-size:11px;background:var(--raised)"/>
+        <button class="btn-save" style="white-space:nowrap;padding:9px 14px" onclick="copyShareLink()">Copy</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">Anyone with this link can view but not edit. Generate a new link to change settings.</p>
+    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('modal-share')">Close</button><button class="btn-save" onclick="generateShareLink()">Generate link</button></div>
+  </div>
+</div>
+
+<!-- HIDDEN INPUTS -->
+<input type="file" id="import-file"  accept=".json"   style="display:none" onchange="doImport(event)"/>
+<input type="file" id="photo-file"   accept="image/*" style="display:none" multiple onchange="handlePhotoFiles(event)"/>
+<input type="file" id="camera-file"  accept="image/*" capture="environment" style="display:none" onchange="handlePhotoFiles(event)"/>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─── CONSTANTS ─── */
+var TRAIL_COLORS=['#4a7c59','#2a6b7c','#7c4a6b','#8a6430','#7c4a4a','#3a5f8a','#5a7c3a','#8a5a2a','#6b2a7c','#2a7c6b'];
+var MAX_DIM=1400, JPEG_Q=0.82;
+var CODE_KEY='av2_code', LOCS_KEY='av2_locs', TRAILS_KEY='av2_trails', SHARE_KEY='av2_sharetoken';
+
+/* ─── DEFAULT DATA ─── */
+var DEFAULT_LOCS=[
+  {id:1, name:"Oeschinen Lake",               lat:46.5138,lng:7.7338, season:"Summer",  region:"Bernese Oberland", desc:"Glacial lake beneath Bluemlisalp. Mirror-calm in early morning. Cable car from Kandersteg.",                       starred:true,  notes:"",photos:[]},
+  {id:2, name:"Schilthorn Summit",             lat:46.5587,lng:7.8342, season:"All year",region:"Bernese Oberland", desc:"360-degree panorama above the clouds. Eiger-Monch-Jungfrau backdrop. Cable car year-round.",                     starred:true,  notes:"",photos:[]},
+  {id:3, name:"Lauterbrunnen Valley",          lat:46.5934,lng:7.9073, season:"All year",region:"Bernese Oberland", desc:"72 waterfalls in a sheer glacial valley. Misty and ethereal in autumn and spring.",                              starred:false, notes:"",photos:[]},
+  {id:4, name:"Staubbach Falls",               lat:46.5948,lng:7.9084, season:"Summer",  region:"Bernese Oberland", desc:"Highest free-falling waterfall in Switzerland at 297m. Dramatic spray and backlight.",                            starred:false, notes:"",photos:[]},
+  {id:5, name:"Bachalpsee — First",            lat:46.6626,lng:8.0432, season:"Summer",  region:"Bernese Oberland", desc:"Alpine lake at 2265m reflecting the Schreckhorn. 1hr hike from First cable car.",                               starred:true,  notes:"",photos:[]},
+  {id:6, name:"Matterhorn — Riffelsee",        lat:45.9806,lng:7.7501, season:"Summer",  region:"Valais",           desc:"Perfect Matterhorn reflection at dawn. 30 min hike from Gornergrat. Arrive before 7am.",                         starred:true,  notes:"",photos:[]},
+  {id:7, name:"Aletsch Glacier — Bettmerhorn",lat:46.4121,lng:8.0572, season:"Summer",  region:"Valais",           desc:"UNESCO World Heritage glacier. Golden hour from Bettmerhorn ridge is unforgettable.",                             starred:true,  notes:"",photos:[]},
+  {id:8, name:"Saas-Fee Village",              lat:46.1077,lng:7.9301, season:"All year",region:"Valais",           desc:"Car-free glacier village at 1800m. Soft diffused light in the valley.",                                           starred:false, notes:"",photos:[]},
+  {id:9, name:"Gorner Glacier",                lat:45.9836,lng:7.7592, season:"Summer",  region:"Valais",           desc:"Vast blue ice field at 3090m. Access via Gornergrat Railway.",                                                    starred:false, notes:"",photos:[]},
+  {id:10,name:"Sils Lake — Engadin",           lat:46.4256,lng:9.7471, season:"Autumn",  region:"Graubunden",       desc:"Turquoise against golden larches in October. Easy walk from Sils Maria.",                                        starred:true,  notes:"",photos:[]},
+  {id:11,name:"Pontresina Ridge",              lat:46.4890,lng:9.8953, season:"Summer",  region:"Graubunden",       desc:"Above St. Moritz. Rocky ridge with sweeping Bernina group views. 2hr approach.",                                 starred:false, notes:"",photos:[]},
+  {id:12,name:"Bergell Valley — Castelmur",   lat:46.2726,lng:9.3459, season:"Autumn",  region:"Graubunden",       desc:"Medieval castle in chestnut forest. Moody and intimate. Italian light.",                                          starred:false, notes:"",photos:[]},
+  {id:13,name:"Schafler Ridge — Appenzell",   lat:47.2890,lng:9.4070, season:"Summer",  region:"Central",          desc:"One of Switzerland's most dramatic ridgelines. Cable car to Ebenalp then 45min hike.",                            starred:true,  notes:"",photos:[]},
+  {id:14,name:"Mount Pilatus — Sunrise",       lat:46.9798,lng:8.2523, season:"Summer",  region:"Central",          desc:"Cable car from Lucerne. Overnight at Pilatus-Kulm for sunrise above clouds.",                                    starred:false, notes:"",photos:[]},
+  {id:15,name:"Verzasca Valley",               lat:46.2505,lng:8.8358, season:"Summer",  region:"Ticino",           desc:"Turquoise river through polished gneiss boulders. Italian atmosphere. Avoid weekends.",                          starred:true,  notes:"",photos:[]},
+  {id:16,name:"Locarno — Lake Maggiore",       lat:46.1694,lng:8.7957, season:"Summer",  region:"Ticino",           desc:"Mediterranean light and palms. Golden sunset over the Italian shore.",                                            starred:false, notes:"",photos:[]},
+  {id:17,name:"Maggia Valley",                 lat:46.2411,lng:8.7069, season:"Autumn",  region:"Ticino",           desc:"Stone villages and aged timber. Warm stone tones and river light.",                                              starred:false, notes:"",photos:[]}
+];
+var DEFAULT_TRAILS=[
+  {id:1,name:"Bernese Highlands",   desc:"Iconic alpine corridor from Kandersteg to the Jungfrau region.", color:"#4a7c59",stops:[1,5,2,3,4]},
+  {id:2,name:"Matterhorn & Valais", desc:"High-altitude Valais circuit from Saas-Fee to the glacier.",     color:"#8a6430",stops:[8,6,9,7]},
+  {id:3,name:"Engadin & Ticino",    desc:"East to south — wild Graubunden then Mediterranean Ticino.",     color:"#2a6b7c",stops:[10,11,12,15,17,16]}
+];
+
+/* ─── STATE ─── */
+var accessCode=localStorage.getItem(CODE_KEY)||'alps2024';
+var locs=[], trails=[];
+var nextLocId=1, nextTrailId=1;
+var ownerMap=null, ownerMapReady=false;
+var cvMap=null, cvMapReady=false;
+var ownerMarkers={}, ownerLines={};
+var curFilter='all';
+var curDetailLocId=null;
+var trailFormStops=[], trailFormColor=TRAIL_COLORS[0], dragSrcIdx=null;
+var photoTargetLocId=null;
+var lbPhotos=[], lbIdx=0;
+var cvLbPhotos=[], cvLbIdx=0;
+var cvBaseLocs=[], cvLinkTrail='all', cvActiveSeason='all';
+
+(function initData(){
+  var sl=localStorage.getItem(LOCS_KEY), st=localStorage.getItem(TRAILS_KEY);
+  locs  =sl?tryParse(sl,  cpArr(DEFAULT_LOCS))  :cpArr(DEFAULT_LOCS);
+  trails=st?tryParse(st,  cpArr(DEFAULT_TRAILS)):cpArr(DEFAULT_TRAILS);
+  locs.forEach(function(l){if(!l.photos)l.photos=[];});
+  nextLocId  =locs.reduce(function(m,l){return Math.max(m,l.id||0);},0)+1;
+  nextTrailId=trails.reduce(function(m,t){return Math.max(m,t.id||0);},0)+1;
+}());
+
+function tryParse(s,fb){try{return JSON.parse(s);}catch(e){return fb;}}
+function cpArr(a){return JSON.parse(JSON.stringify(a));}
+function persist(){localStorage.setItem(LOCS_KEY,JSON.stringify(locs));localStorage.setItem(TRAILS_KEY,JSON.stringify(trails));}
+function findLoc(id){return locs.find(function(l){return l.id===id;});}
+function findTrail(id){return trails.find(function(t){return t.id===id;});}
+
+/* ─── URL DETECTION — runs immediately ─── */
+(function detectMode(){
+  var qs={};
+  window.location.search.slice(1).split('&').forEach(function(p){
+    var kv=p.split('=');if(kv[0])qs[decodeURIComponent(kv[0])]=decodeURIComponent(kv[1]||'');
+  });
+  if(qs.share){
+    var stored=localStorage.getItem(SHARE_KEY);
+    if(!stored||qs.share!==stored){
+      document.body.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Jost,sans-serif;color:#6b6b65;text-align:center;padding:40px"><div><div style="font-size:36px;margin-bottom:16px">&#128274;</div><div style="font-size:18px;margin-bottom:8px;color:#1a1a18">Link not found</div><div style="font-size:14px">This link has expired or is invalid. Please ask for a new one.</div></div></div>';
+      return;
+    }
+    bootClientView(qs);
+  }
+}());
+
+/* ─── AUTH ─── */
+document.getElementById('pin-input').addEventListener('keydown',function(e){if(e.key==='Enter')tryUnlock();});
+function tryUnlock(){
+  if(document.getElementById('pin-input').value===accessCode){
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    startOwnerMap();renderLocList();renderTrailList();rebuildPills();
+  }else{
+    document.getElementById('pin-error').textContent='Incorrect code — try again';
+    document.getElementById('pin-input').value='';document.getElementById('pin-input').focus();
+  }
+}
+function lockApp(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('lock-screen').style.display='flex';
+  document.getElementById('pin-input').value='';document.getElementById('pin-error').textContent='';
+}
+function openChangeCode(){
+  ['m-cur','m-new','m-conf'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('m-err').textContent='';
+  document.getElementById('modal-code').classList.add('open');
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function doChangeCode(){
+  var cur=document.getElementById('m-cur').value,nw=document.getElementById('m-new').value.trim(),con=document.getElementById('m-conf').value,err=document.getElementById('m-err');
+  if(cur!==accessCode){err.textContent='Current code incorrect.';return;}
+  if(nw.length<4){err.textContent='New code needs 4+ characters.';return;}
+  if(nw!==con){err.textContent='New codes do not match.';return;}
+  accessCode=nw;localStorage.setItem(CODE_KEY,nw);closeModal('modal-code');toast('Access code updated');
+}
+document.getElementById('modal-code').addEventListener('click',function(e){if(e.target===this)closeModal('modal-code');});
+document.getElementById('modal-share').addEventListener('click',function(e){if(e.target===this)closeModal('modal-share');});
+
+/* ─── TABS ─── */
+function goTab(name){
+  ['map','locations','trails'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('panel-'+t).classList.toggle('active',t===name);
+  });
+  if(name==='map'){if(!ownerMapReady)startOwnerMap();else setTimeout(function(){ownerMap.invalidateSize();},80);}
+  if(name==='locations')renderLocList();
+  if(name==='trails')renderTrailList();
+}
+
+/* ─── OWNER MAP ─── */
+function startOwnerMap(){
+  if(ownerMapReady){setTimeout(function(){ownerMap.invalidateSize();},80);return;}
+  if(typeof L==='undefined'){setTimeout(startOwnerMap,150);return;}
+  ownerMap=L.map('map',{center:[46.82,8.3],zoom:8});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(ownerMap);
+  ownerMapReady=true;drawOwnerMap();
+}
+function mkMarkerIcon(loc){
+  var bg=loc.starred?'#c8a96e':'#4a7c59',g=loc.starred?'&#9733;':'&bull;',fs=loc.starred?'14px':'10px';
+  var sh=loc.photos&&loc.photos.length?'box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 0 5px '+bg+';':'box-shadow:0 2px 8px rgba(0,0,0,.28);';
+  return L.divIcon({className:'',html:'<div style="width:30px;height:30px;background:'+bg+';border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:'+fs+';color:#fff;'+sh+'cursor:pointer">'+g+'</div>',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-16]});
+}
+function mkStopIcon(n,color){
+  return L.divIcon({className:'',html:'<div style="width:26px;height:26px;background:'+color+';border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28)">'+n+'</div>',iconSize:[26,26],iconAnchor:[13,13],popupAnchor:[0,-14]});
+}
+function drawOwnerMap(){
+  if(!ownerMapReady)return;
+  Object.keys(ownerMarkers).forEach(function(k){ownerMap.removeLayer(ownerMarkers[k]);});ownerMarkers={};
+  Object.keys(ownerLines).forEach(function(k){ownerLines[k].forEach(function(l){ownerMap.removeLayer(l);});});ownerLines={};
+  var visLocs=locs.filter(function(loc){
+    if(curFilter==='all')return true;
+    if(curFilter==='starred')return loc.starred;
+    var tid=parseInt(curFilter,10);if(!isNaN(tid)){var tr=findTrail(tid);return tr&&tr.stops.indexOf(loc.id)!==-1;}
+    return true;
+  });
+  if(curFilter==='all'||!isNaN(parseInt(curFilter,10))){
+    var td=curFilter==='all'?trails:trails.filter(function(t){return t.id===parseInt(curFilter,10);});
+    td.forEach(function(trail){
+      var coords=trail.stops.map(function(sid){var l=findLoc(sid);return l?[l.lat,l.lng]:null;}).filter(Boolean);
+      if(coords.length<2)return;
+      var line=L.polyline(coords,{color:trail.color||'#4a7c59',weight:3.5,opacity:.75,dashArray:'6 4'}).addTo(ownerMap);
+      line.bindPopup('<div style="font-family:Jost,sans-serif;font-size:13px;font-weight:500">'+eh(trail.name)+'</div><div style="font-size:12px;color:#888;margin-top:2px">'+eh(trail.desc)+'</div>');
+      var layers=[line];
+      trail.stops.forEach(function(sid,idx){
+        var l=findLoc(sid);if(!l)return;
+        var ph=l.photos&&l.photos.length?'<img src="'+l.photos[0].data+'" style="width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:6px;display:block">':'';
+        var sm=L.marker([l.lat,l.lng],{icon:mkStopIcon(idx+1,trail.color||'#4a7c59')}).addTo(ownerMap);
+        sm.bindPopup('<div style="font-family:Jost,sans-serif;min-width:190px">'+ph+'<div style="font-size:11px;color:'+trail.color+';letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px">Stop '+(idx+1)+' &middot; '+eh(trail.name)+'</div><div style="font-size:15px;font-weight:500;margin-bottom:4px">'+eh(l.name)+'</div><div style="font-size:12px;color:#888">'+eh(l.desc)+'</div></div>',{maxWidth:240});
+        layers.push(sm);
+      });
+      ownerLines[trail.id]=layers;
+    });
+  }
+  if(curFilter==='all'||curFilter==='starred'){
+    visLocs.forEach(function(loc){
+      if(ownerMarkers[loc.id])return;
+      var ph=loc.photos&&loc.photos.length?'<img src="'+loc.photos[0].data+'" style="width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:8px;display:block">':'';
+      var m=L.marker([loc.lat,loc.lng],{icon:mkMarkerIcon(loc)}).addTo(ownerMap);
+      m.bindPopup('<div style="font-family:Jost,sans-serif;min-width:190px;max-width:250px">'+ph+'<div style="font-size:15px;font-weight:500;margin-bottom:4px;color:#1a1a18">'+eh(loc.name)+'</div><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#888;margin-bottom:6px">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div><div style="font-size:13px;line-height:1.6;color:#3d3d3a">'+eh(loc.desc)+'</div></div>',{maxWidth:260});
+      ownerMarkers[loc.id]=m;
+    });
+  }
+}
+function rebuildPills(){
+  var wrap=document.getElementById('map-pills');
+  var html='<button class="filter-pill'+(curFilter==='all'?' active':'')+'" onclick="setFilter(\'all\',this)">All</button>'
+    +'<button class="filter-pill pill-gold'+(curFilter==='starred'?' active':'')+'" onclick="setFilter(\'starred\',this)">&#9733; Starred</button>';
+  trails.forEach(function(t){
+    var a=curFilter===String(t.id);
+    html+='<button class="filter-pill'+(a?' active':'')+'" style="'+(a?'':'border-left:3px solid '+t.color+';')+'" onclick="setFilter(\''+t.id+'\',this)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+t.color+';margin-right:5px;vertical-align:middle"></span>'+eh(t.name)+'</button>';
+  });
+  wrap.innerHTML=html;
+}
+function setFilter(f,btn){document.querySelectorAll('.filter-pill').forEach(function(p){p.classList.remove('active');});if(btn)btn.classList.add('active');curFilter=f;drawOwnerMap();}
+
+/* ─── LOCATIONS ─── */
+function scClass(s){var m={summer:'t-summer',winter:'t-winter',autumn:'t-autumn',spring:'t-spring'};return m[(s||'').toLowerCase()]||'';}
+function renderLocList(){
+  var el=document.getElementById('loc-list');
+  if(!locs.length){el.innerHTML='<div class="empty">No locations yet.</div>';return;}
+  el.innerHTML=locs.map(function(loc){
+    var sc=scClass(loc.season);
+    var inT=trails.filter(function(t){return t.stops.indexOf(loc.id)!==-1;});
+    var th=loc.photos&&loc.photos.length?'<img class="loc-thumb" src="'+loc.photos[0].data+'" alt=""/>':'<div class="loc-thumb-empty">&#9968;</div>';
+    return '<div class="loc-item" onclick="openLocDetail('+loc.id+')">'
+      +th+'<div class="loc-info"><div class="loc-name">'+eh(loc.name)+'</div><div class="loc-sub">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div>'
+      +'<div class="loc-tags">'+(loc.starred?'<span class="tag t-starred">&#9733; starred</span>':'')+'<span class="tag '+sc+'">'+eh(loc.season)+'</span>'
+      +(loc.photos&&loc.photos.length?'<span class="tag">&#128247; '+loc.photos.length+'</span>':'')
+      +inT.map(function(t){return '<span class="tag" style="border-left:3px solid '+t.color+'">'+eh(t.name)+'</span>';}).join('')+'</div></div>'
+      +'<button class="star-btn'+(loc.starred?' active':'')+'" onclick="event.stopPropagation();toggleStar('+loc.id+')">'+(loc.starred?'&#9733;':'&#9734;')+'</button></div>';
+  }).join('');
+}
+function toggleStar(id){var loc=findLoc(id);if(!loc)return;loc.starred=!loc.starred;persist();renderLocList();drawOwnerMap();}
+function openLocDetail(id){
+  curDetailLocId=id;var loc=findLoc(id);if(!loc)return;
+  var sc=scClass(loc.season);
+  var inT=trails.filter(function(t){return t.stops.indexOf(id)!==-1;});
+  var hw=document.getElementById('ld-hero-wrap');
+  if(loc.photos&&loc.photos.length){
+    hw.innerHTML='<div class="detail-hero-wrap"><img class="detail-hero" src="'+loc.photos[0].data+'" onclick="openLightbox('+id+',0)" alt=""/>'
+      +'<button class="star-overlay'+(loc.starred?' active':'')+'" onclick="toggleStarDetail('+id+')">'+(loc.starred?'&#9733;':'&#9734;')+'</button></div>';
+  }else{hw.innerHTML='';}
+  document.getElementById('ld-name').textContent=loc.name;
+  document.getElementById('ld-body').innerHTML=
+    '<div class="loc-tags" style="margin-bottom:4px">'+(loc.starred?'<span class="tag t-starred">&#9733; Starred</span>':'')+'<span class="tag '+sc+'">'+eh(loc.season)+'</span>'+(loc.region?'<span class="tag">'+eh(loc.region)+'</span>':'')
+    +inT.map(function(t){return '<span class="tag" style="border-left:3px solid '+t.color+'">'+eh(t.name)+'</span>';}).join('')+'</div>'
+    +'<div class="detail-section"><div class="detail-section-lbl">About</div><div style="font-size:15px;line-height:1.7;color:var(--ink)">'+eh(loc.desc)+'</div></div>'
+    +'<div class="detail-section"><div class="detail-section-lbl">Scouting photos'+(loc.photos&&loc.photos.length?' ('+loc.photos.length+')':'')+'</div>'
+    +(loc.photos&&loc.photos.length?'<div class="photo-grid">'+loc.photos.map(function(p,i){return '<div class="photo-thumb-wrap" onclick="openLightbox('+id+','+i+')"><img src="'+p.data+'" alt=""/><button class="photo-delete-btn" onclick="event.stopPropagation();deletePhoto('+id+','+i+')">&#215;</button></div>';}).join('')+'</div>':'')
+    +'<div class="photo-upload-zone" ondrop="handleDrop(event,'+id+')" ondragover="event.preventDefault();this.classList.add(\'drag-over\')" ondragleave="this.classList.remove(\'drag-over\')">'
+    +'<div style="font-size:28px;margin-bottom:6px;color:var(--faint)">&#128247;</div>'
+    +'<div style="font-size:13px;color:var(--muted);margin-bottom:4px">Add scouting photos</div>'
+    +'<div style="font-size:11px;color:var(--faint)">Drag &amp; drop, or use buttons below</div>'
+    +'<div class="upload-actions"><button class="upload-btn primary" onclick="triggerPhoto('+id+',false)">Choose photos</button><button class="upload-btn" onclick="triggerPhoto('+id+',true)">&#128247; Take photo</button></div></div></div>'
+    +'<div class="detail-section"><div class="detail-section-lbl">Private notes</div>'
+    +'<textarea class="notes-area" id="notes-'+id+'" placeholder="Shot list, permits, timing...">'+eh(loc.notes||'')+'</textarea>'
+    +'<button class="btn-save" style="margin-top:10px;font-size:11px;padding:7px 16px" onclick="saveNotes('+id+')">Save notes</button></div>'
+    +'<div class="detail-section"><div class="detail-section-lbl">Coordinates</div>'
+    +'<code style="font-size:13px;color:var(--muted);background:var(--raised);padding:6px 10px;border-radius:6px;display:inline-block">'+loc.lat.toFixed(4)+', '+loc.lng.toFixed(4)+'</code>'
+    +'<div style="margin-top:6px;font-size:12px"><a href="https://www.google.com/maps/search/?api=1&query='+loc.lat+','+loc.lng+'" target="_blank" rel="noopener" style="color:var(--accent)">Open in Google Maps &#8599;</a></div></div>'
+    +'<div class="detail-actions"><button class="btn-ghost" id="star-det-'+id+'" onclick="toggleStarDetail('+id+')">'+(loc.starred?'&#9733; Remove star':'&#9734; Star')+'</button><button class="btn-danger" onclick="deleteLoc('+id+')">Remove location</button></div>';
+  document.getElementById('loc-detail').classList.add('open');
+}
+function toggleStarDetail(id){
+  toggleStar(id);var loc=findLoc(id);
+  var btn=document.getElementById('star-det-'+id);if(btn&&loc)btn.innerHTML=loc.starred?'&#9733; Remove star':'&#9734; Star';
+  var ov=document.querySelector('#ld-hero-wrap .star-overlay');if(ov&&loc){ov.className='star-overlay'+(loc.starred?' active':'');ov.innerHTML=loc.starred?'&#9733;':'&#9734;';}
+}
+function saveNotes(id){var loc=findLoc(id),el=document.getElementById('notes-'+id);if(loc&&el){loc.notes=el.value;persist();toast('Notes saved');}}
+function deleteLoc(id){
+  if(!confirm('Remove this location? It will also be removed from any trails.'))return;
+  locs=locs.filter(function(l){return l.id!==id;});
+  trails.forEach(function(t){t.stops=t.stops.filter(function(s){return s!==id;});});
+  persist();closeLocDetail();renderLocList();renderTrailList();drawOwnerMap();rebuildPills();toast('Location removed');
+}
+function closeLocDetail(){document.getElementById('loc-detail').classList.remove('open');}
+function editLocFromDetail(){
+  if(curDetailLocId==null)return;closeLocDetail();var loc=findLoc(curDetailLocId);if(!loc)return;
+  document.getElementById('loc-form-title').textContent='Edit location';document.getElementById('f-edit-id').value=loc.id;
+  document.getElementById('f-name').value=loc.name;document.getElementById('f-desc').value=loc.desc||'';
+  document.getElementById('f-lat').value=loc.lat;document.getElementById('f-lng').value=loc.lng;
+  document.getElementById('f-season').value=loc.season||'All year';document.getElementById('f-region').value=loc.region||'';
+  document.getElementById('loc-add-form').classList.add('open');
+  document.getElementById('loc-add-form').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function toggleLocForm(){
+  var f=document.getElementById('loc-add-form');
+  if(f.classList.contains('open')){closeLocForm();}
+  else{document.getElementById('loc-form-title').textContent='New scouting location';document.getElementById('f-edit-id').value='';
+    ['f-name','f-desc','f-lat','f-lng','f-region'].forEach(function(id){document.getElementById(id).value='';});
+    document.getElementById('f-season').value='All year';f.classList.add('open');}
+}
+function closeLocForm(){document.getElementById('loc-add-form').classList.remove('open');}
+function saveLocForm(){
+  var name=document.getElementById('f-name').value.trim(),lat=parseFloat(document.getElementById('f-lat').value),lng=parseFloat(document.getElementById('f-lng').value),eid=document.getElementById('f-edit-id').value;
+  if(!name){alert('Please enter a location name.');return;}
+  if(isNaN(lat)||isNaN(lng)){alert('Please enter valid coordinates.\n\nTip: right-click in Google Maps to copy coordinates.');return;}
+  if((lat<45.7||lat>47.9||lng<5.9||lng>10.6)&&!confirm('Coordinates appear outside Switzerland. Add anyway?'))return;
+  var d={name:name,lat:lat,lng:lng,desc:document.getElementById('f-desc').value,season:document.getElementById('f-season').value,region:document.getElementById('f-region').value};
+  if(eid){var loc=findLoc(parseInt(eid,10));if(loc){loc.name=d.name;loc.lat=d.lat;loc.lng=d.lng;loc.desc=d.desc;loc.season=d.season;loc.region=d.region;}toast('Location updated');}
+  else{d.id=nextLocId++;d.starred=false;d.notes='';d.photos=[];locs.push(d);toast('Location saved');}
+  persist();closeLocForm();renderLocList();drawOwnerMap();
+}
+
+/* ─── PHOTOS ─── */
+function triggerPhoto(locId,cam){photoTargetLocId=locId;var el=document.getElementById(cam?'camera-file':'photo-file');el.value='';el.click();}
+function handlePhotoFiles(e){
+  var files=Array.from(e.target.files);if(!files.length||!photoTargetLocId)return;
+  var loc=findLoc(photoTargetLocId);if(!loc)return;
+  var total=files.length,done=0;
+  files.forEach(function(file){
+    resizeAndStore(file,function(data){
+      loc.photos.push({data:data,caption:'',addedAt:new Date().toISOString()});
+      if(++done===total){persist();toast(total===1?'Photo added':total+' photos added');openLocDetail(photoTargetLocId);renderLocList();drawOwnerMap();}
+    });
+  });
+}
+function handleDrop(e,locId){
+  e.preventDefault();var zone=e.currentTarget;zone.classList.remove('drag-over');
+  var files=Array.from(e.dataTransfer.files).filter(function(f){return f.type.startsWith('image/');});
+  if(!files.length)return;photoTargetLocId=locId;
+  var loc=findLoc(locId);if(!loc)return;
+  var total=files.length,done=0;
+  files.forEach(function(file){resizeAndStore(file,function(data){loc.photos.push({data:data,caption:'',addedAt:new Date().toISOString()});if(++done===total){persist();toast(total===1?'Photo added':total+' photos added');openLocDetail(locId);renderLocList();drawOwnerMap();}});});
+}
+function resizeAndStore(file,cb){
+  var r=new FileReader();r.onload=function(ev){var img=new Image();img.onload=function(){
+    var w=img.width,h=img.height;if(w>MAX_DIM||h>MAX_DIM){var s=MAX_DIM/Math.max(w,h);w=Math.round(w*s);h=Math.round(h*s);}
+    var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',JPEG_Q));
+  };img.src=ev.target.result;};r.readAsDataURL(file);
+}
+function deletePhoto(locId,idx){
+  if(!confirm('Remove this photo?'))return;var loc=findLoc(locId);if(!loc)return;
+  loc.photos.splice(idx,1);persist();openLocDetail(locId);renderLocList();drawOwnerMap();toast('Photo removed');
+}
+
+/* ─── OWNER LIGHTBOX ─── */
+function openLightbox(locId,startIdx){var loc=findLoc(locId);if(!loc||!loc.photos.length)return;lbPhotos=loc.photos;lbIdx=startIdx;showLbPhoto();document.getElementById('lightbox').classList.add('open');}
+function showLbPhoto(){var p=lbPhotos[lbIdx];document.getElementById('lightbox-img').src=p.data;document.getElementById('lightbox-caption').textContent=p.caption||'';document.getElementById('lightbox-counter').textContent=(lbIdx+1)+' / '+lbPhotos.length;document.querySelector('#lightbox .lb-prev').style.display=lbPhotos.length>1?'block':'none';document.querySelector('#lightbox .lb-next').style.display=lbPhotos.length>1?'block':'none';}
+function lightboxNav(d){lbIdx=(lbIdx+d+lbPhotos.length)%lbPhotos.length;showLbPhoto();}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+document.getElementById('lightbox').addEventListener('click',function(e){if(e.target===this)closeLightbox();});
+
+/* ─── TRAILS ─── */
+function renderTrailList(){
+  var el=document.getElementById('trail-list');
+  if(!trails.length){el.innerHTML='<div class="empty">No trails yet. Create your first route above.</div>';return;}
+  el.innerHTML=trails.map(function(trail){
+    var c=trail.stops.length,s=trail.stops.filter(function(sid){var l=findLoc(sid);return l&&l.starred;}).length;
+    var ph=trail.stops.reduce(function(a,sid){var l=findLoc(sid);return a+(l&&l.photos?l.photos.length:0);},0);
+    var names=trail.stops.map(function(sid){var l=findLoc(sid);return l?eh(l.name):'?';});
+    return '<div class="trail-card" style="border-left:3px solid '+trail.color+'">'
+      +'<div class="trail-bar" style="background:'+trail.color+'"></div>'
+      +'<div class="trail-name">'+eh(trail.name)+'</div>'
+      +'<div class="trail-desc">'+eh(trail.desc)+'</div>'
+      +'<div class="trail-stats"><span>'+c+' stop'+(c!==1?'s':'')+'</span>'+(s?'<span>&middot;</span><span class="trail-gold">&#9733; '+s+' starred</span>':'')+(ph?'<span>&middot;</span><span>&#128247; '+ph+'</span>':'')+'</div>'
+      +(names.length?'<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.8">'+names.map(function(n,i){return '<span style="color:'+trail.color+';font-weight:500">'+(i+1)+'.</span> '+n;}).join(' &rarr; ')+'</div>':'')
+      +'<div class="trail-actions"><button class="trail-action-btn" onclick="event.stopPropagation();showTrailOnMap('+trail.id+')">Show on map</button><button class="trail-action-btn" onclick="event.stopPropagation();openTrailForm('+trail.id+')">Edit</button><button class="trail-action-btn danger" onclick="event.stopPropagation();deleteTrail('+trail.id+')">Delete</button></div></div>';
+  }).join('');
+}
+function showTrailOnMap(id){curFilter=String(id);goTab('map');rebuildPills();drawOwnerMap();}
+function deleteTrail(id){if(!confirm('Delete this trail?'))return;trails=trails.filter(function(t){return t.id!==id;});persist();renderTrailList();drawOwnerMap();rebuildPills();toast('Trail deleted');}
+function openTrailForm(id){
+  trailFormStops=[];trailFormColor=TRAIL_COLORS[0];
+  if(id){var tr=findTrail(id);if(tr){document.getElementById('tf-id').value=tr.id;document.getElementById('tf-name').value=tr.name;document.getElementById('tf-desc').value=tr.desc||'';trailFormStops=tr.stops.slice();trailFormColor=tr.color||TRAIL_COLORS[0];document.getElementById('trail-form-heading').textContent='Edit trail';}}
+  else{document.getElementById('tf-id').value='';document.getElementById('tf-name').value='';document.getElementById('tf-desc').value='';document.getElementById('trail-form-heading').textContent='New trail';}
+  renderSwatches();renderLocPicker();renderStopList();document.getElementById('trail-edit-overlay').classList.add('open');
+}
+function closeTrailForm(){document.getElementById('trail-edit-overlay').classList.remove('open');}
+function renderSwatches(){document.getElementById('color-swatches').innerHTML=TRAIL_COLORS.map(function(c){return '<div class="swatch'+(c===trailFormColor?' active':'')+'" style="background:'+c+'" onclick="pickColor(\''+c+'\')"></div>';}).join('');}
+function pickColor(c){trailFormColor=c;renderSwatches();}
+function renderLocPicker(){
+  var w=document.getElementById('loc-picker');
+  if(!locs.length){w.innerHTML='<div style="padding:12px;font-size:13px;color:var(--muted)">No locations yet.</div>';return;}
+  w.innerHTML=locs.map(function(loc){var s=trailFormStops.indexOf(loc.id)!==-1;var th=loc.photos&&loc.photos.length?'<img src="'+loc.photos[0].data+'" style="width:28px;height:28px;border-radius:4px;object-fit:cover;flex-shrink:0">':'';
+    return '<div class="loc-pick-item'+(s?' selected':'')+'" onclick="toggleLocPick('+loc.id+')">'+'<div class="loc-pick-check">'+(s?'&#10003;':'')+'</div>'+th+'<div class="loc-pick-name">'+eh(loc.name)+'</div><div class="loc-pick-sub">'+eh(loc.region||loc.season||'')+'</div></div>';}).join('');
+}
+function toggleLocPick(id){var i=trailFormStops.indexOf(id);if(i===-1)trailFormStops.push(id);else trailFormStops.splice(i,1);renderLocPicker();renderStopList();}
+function renderStopList(){
+  var w=document.getElementById('stop-list-wrap'),l=document.getElementById('stop-list');
+  if(!trailFormStops.length){w.style.display='none';l.innerHTML='';return;}
+  w.style.display='block';
+  l.innerHTML=trailFormStops.map(function(sid,idx){var loc=findLoc(sid);
+    return '<div class="stop-item" draggable="true" data-idx="'+idx+'" ondragstart="dragStart(event,'+idx+')" ondragover="dragOver(event)" ondrop="dragDrop(event,'+idx+')" ondragleave="dragLeave(event)"><div class="stop-num" style="background:'+trailFormColor+'">'+(idx+1)+'</div><div class="stop-name">'+(loc?eh(loc.name):'?')+'</div><button class="stop-remove" onclick="removeStop('+idx+')">&#215;</button></div>';}).join('');
+}
+function removeStop(idx){trailFormStops.splice(idx,1);renderLocPicker();renderStopList();}
+function dragStart(e,idx){dragSrcIdx=idx;e.dataTransfer.effectAllowed='move';}
+function dragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
+function dragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function dragDrop(e,to){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(dragSrcIdx===null||dragSrcIdx===to)return;var m=trailFormStops.splice(dragSrcIdx,1)[0];trailFormStops.splice(to,0,m);dragSrcIdx=null;renderStopList();}
+function saveTrailForm(){
+  var name=document.getElementById('tf-name').value.trim();if(!name){alert('Please enter a trail name.');return;}
+  var eid=document.getElementById('tf-id').value,d={name:name,desc:document.getElementById('tf-desc').value,color:trailFormColor,stops:trailFormStops.slice()};
+  if(eid){var tr=findTrail(parseInt(eid,10));if(tr)Object.assign(tr,d);toast('Trail updated');}else{d.id=nextTrailId++;trails.push(d);toast('Trail created');}
+  persist();closeTrailForm();renderTrailList();drawOwnerMap();rebuildPills();
+}
+
+/* ─── KEYBOARD ─── */
+document.addEventListener('keydown',function(e){
+  var lb=document.getElementById('lightbox');
+  if(lb.classList.contains('open')){if(e.key==='Escape')closeLightbox();if(e.key==='ArrowLeft')lightboxNav(-1);if(e.key==='ArrowRight')lightboxNav(1);}
+  var cvlb=document.getElementById('cv-lightbox');
+  if(cvlb.classList.contains('open')){if(e.key==='Escape')cvCloseLightbox();if(e.key==='ArrowLeft')cvLightboxNav(-1);if(e.key==='ArrowRight')cvLightboxNav(1);}
+});
+
+/* ─── EXPORT / IMPORT ─── */
+function doExport(){
+  var a=document.createElement('a');a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({locations:locs,trails:trails,exportedAt:new Date().toISOString()},null,2));a.download='alps-and-vows.json';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function doImport(e){
+  var file=e.target.files[0];if(!file)return;var r=new FileReader();
+  r.onload=function(ev){try{var d=JSON.parse(ev.target.result),il=Array.isArray(d)?d:(d.locations||null),it=d.trails||[];if(!il)throw new Error();if(!confirm('Import '+il.length+' locations and '+it.length+' trails?'))return;locs=il;trails=it;locs.forEach(function(l){if(!l.photos)l.photos=[];});nextLocId=locs.reduce(function(m,l){return Math.max(m,l.id||0);},0)+1;nextTrailId=trails.reduce(function(m,t){return Math.max(m,t.id||0);},0)+1;persist();renderLocList();renderTrailList();drawOwnerMap();rebuildPills();toast('Imported '+il.length+' locations, '+it.length+' trails');}catch(err){alert('Could not read file.');}};
+  r.readAsText(file);e.target.value='';
+}
+
+/* ─── SHARE LINK ─── */
+function openShareModal(){
+  var sel=document.getElementById('share-trail');sel.innerHTML='<option value="all">All trails &amp; locations</option>';
+  trails.forEach(function(t){sel.innerHTML+='<option value="'+t.id+'">'+eh(t.name)+'</option>';});
+  document.getElementById('share-result').style.display='none';
+  document.getElementById('modal-share').classList.add('open');
+}
+function generateShareLink(){
+  var token=localStorage.getItem(SHARE_KEY);
+  if(!token){token=Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,10);localStorage.setItem(SHARE_KEY,token);}
+  var season=document.getElementById('share-season').value,trail=document.getElementById('share-trail').value,starred=document.getElementById('share-starred').value,msg=encodeURIComponent(document.getElementById('share-msg').value.trim());
+  var base=window.location.href.split('?')[0];
+  var link=base+'?share='+token+'&season='+season+'&trail='+trail+'&starred='+starred+(msg?'&msg='+msg:'');
+  document.getElementById('share-link-out').value=link;document.getElementById('share-result').style.display='block';
+}
+function copyShareLink(){
+  var el=document.getElementById('share-link-out');el.select();el.setSelectionRange(0,99999);
+  try{document.execCommand('copy');toast('Link copied to clipboard');}
+  catch(err){navigator.clipboard&&navigator.clipboard.writeText(el.value).then(function(){toast('Link copied');});}
+}
+
+/* ─── CLIENT VIEW ─── */
+function bootClientView(qs){
+  document.getElementById('lock-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('client-view').style.display='block';
+
+  var msg=qs.msg||'';
+  var msgEl=document.getElementById('cv-message');
+  if(msg){msgEl.textContent=msg;msgEl.style.display='block';}
+
+  cvLinkTrail=qs.trail||'all';
+  var linkSeason=qs.season||'all';
+  var linkStarred=qs.starred==='1';
+
+  // Base filter
+  cvBaseLocs=locs.filter(function(loc){
+    if(linkStarred&&!loc.starred)return false;
+    if(cvLinkTrail!=='all'){var tid=parseInt(cvLinkTrail,10);var tr=findTrail(tid);if(!tr||tr.stops.indexOf(loc.id)===-1)return false;}
+    return true;
+  });
+
+  // Subtitle
+  var sl={all:'All Seasons',summer:'Summer',winter:'Winter',spring:'Spring',autumn:'Autumn'};
+  document.getElementById('cv-subtitle').textContent='Switzerland Elopement Locations'+(linkSeason!=='all'?' — '+sl[linkSeason]:'');
+
+  // Season tabs — only if link isn't locked to one season
+  cvActiveSeason=linkSeason;
+  if(linkSeason==='all'){
+    var has={};cvBaseLocs.forEach(function(l){has[(l.season||'').toLowerCase()]=true;});
+    var seasons=['summer','winter','spring','autumn'].filter(function(s){return has[s]||has['all year'];});
+    var tabHtml='<button class="cv-tab'+(cvActiveSeason==='all'?' active':'')+'" onclick="cvSetSeason(\'all\')">All</button>';
+    seasons.forEach(function(s){tabHtml+='<button class="cv-tab s-'+s+(cvActiveSeason===s?' active':'')+'" onclick="cvSetSeason(\''+s+'\')">'+s.charAt(0).toUpperCase()+s.slice(1)+'</button>';});
+    document.getElementById('cv-season-tabs').innerHTML=tabHtml;
+  }
+
+  cvRender();
+  setTimeout(cvInitMap,120);
+}
+
+function cvSetSeason(s){
+  cvActiveSeason=s;
+  document.querySelectorAll('.cv-tab').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.cv-tab').forEach(function(b){if((s==='all'&&b.textContent.trim()==='All')||(b.textContent.trim().toLowerCase()===s))b.classList.add('active');});
+  cvRender();if(cvMapReady)cvDrawMap();
+}
+
+function cvVisible(){
+  return cvBaseLocs.filter(function(loc){
+    if(cvActiveSeason==='all')return true;
+    var s=(loc.season||'').toLowerCase();return s===cvActiveSeason||s==='all year';
+  });
+}
+
+function cvRender(){
+  var visible=cvVisible();
+  var toDraw=cvLinkTrail==='all'?trails:trails.filter(function(t){return t.id===parseInt(cvLinkTrail,10);});
+  var trailedIds=[],trailHtml='';
+  toDraw.forEach(function(trail){
+    var tl=trail.stops.map(findLoc).filter(function(l){return l&&visible.find(function(v){return v.id===l.id;});});
+    if(!tl.length)return;
+    tl.forEach(function(l){trailedIds.push(l.id);});
+    trailHtml+='<div class="cv-section"><div class="cv-section-hdr"><div class="cv-section-dot" style="background:'+trail.color+'"></div><div class="cv-section-title">'+eh(trail.name)+'</div><div class="cv-section-meta">'+tl.length+' location'+(tl.length!==1?'s':'')+'</div></div>'
+      +'<div class="cv-grid">'+tl.map(cvCardHtml).join('')+'</div></div>';
+  });
+  var ungrouped=visible.filter(function(l){return trailedIds.indexOf(l.id)===-1;});
+  var ugHtml=ungrouped.length?'<div class="cv-section">'+(trailedIds.length?'<div class="cv-section-hdr"><div class="cv-section-title" style="color:var(--muted)">Other Locations</div></div>':'')+'<div class="cv-grid">'+ungrouped.map(cvCardHtml).join('')+'</div></div>':'';
+  document.getElementById('cv-trail-sections').innerHTML=trailHtml;
+  document.getElementById('cv-ungrouped').innerHTML=ugHtml||(visible.length?'':'<div class="empty">No locations for this season.</div>');
+}
+
+function cvCardHtml(loc){
+  var imgH=loc.photos&&loc.photos.length?'<img class="cv-card-img" src="'+loc.photos[0].data+'" alt=""/>':'<div class="cv-card-img-empty">&#9968;</div>';
+  var tTags=trails.filter(function(t){return t.stops.indexOf(loc.id)!==-1;}).map(function(t){return '<span style="font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid '+t.color+';color:'+t.color+';letter-spacing:.06em;text-transform:uppercase">'+eh(t.name)+'</span>';}).join('');
+  return '<div class="cv-card" onclick="cvOpenDetail('+loc.id+')">'+imgH
+    +'<div class="cv-card-body"><div class="cv-card-name">'+eh(loc.name)+'</div>'
+    +'<div class="cv-card-meta">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div>'
+    +'<div class="cv-card-desc">'+eh(loc.desc)+'</div>'
+    +'<div class="cv-card-footer">'+(loc.starred?'<span class="cv-star">&#9733; Recommended</span>':'')+(tTags?'<span style="display:flex;gap:4px;flex-wrap:wrap">'+tTags+'</span>':'')+(loc.photos&&loc.photos.length>1?'<span class="cv-photo-count">&#128247; '+loc.photos.length+'</span>':'')+'</div></div></div>';
+}
+
+function cvOpenDetail(id){
+  var loc=findLoc(id);if(!loc)return;
+  var sc={'summer':'#2e7d32','winter':'#1565c0','autumn':'#e65100','spring':'#880e4f'}[(loc.season||'').toLowerCase()]||'var(--accent)';
+  var inT=trails.filter(function(t){return t.stops.indexOf(id)!==-1;});
+  document.getElementById('cv-detail-star').textContent=loc.starred?'★ Recommended':'';
+  var heroH=loc.photos&&loc.photos.length?'<img src="'+loc.photos[0].data+'" style="width:100%;height:280px;object-fit:cover;display:block;cursor:pointer" onclick="cvOpenLightbox('+id+',0)" alt=""/>':'<div style="width:100%;height:160px;background:var(--raised);display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--faint)">&#9968;</div>';
+  var moreImgs=loc.photos&&loc.photos.length>1?'<div style="padding:0 24px 16px"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">More photos</div><div class="cv-img-row">'+loc.photos.slice(1).map(function(p,i){return '<img src="'+p.data+'" onclick="cvOpenLightbox('+id+','+(i+1)+')" alt=""/>';}).join('')+'</div></div>':'';
+  document.getElementById('cv-detail-body').innerHTML=
+    heroH+'<div style="padding:20px 24px 4px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:300;color:var(--ink);margin-bottom:4px">'+eh(loc.name)+'</div>'
+    +'<div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">'+eh(loc.region||'')+(loc.season?' &middot; <span style="color:'+sc+'">'+eh(loc.season)+'</span>':'')+'</div>'
+    +inT.map(function(t){return '<span style="font-size:10px;padding:2px 10px;border-radius:20px;border:1px solid '+t.color+';color:'+t.color+';letter-spacing:.06em;text-transform:uppercase;margin-right:6px">'+eh(t.name)+'</span>';}).join('')
+    +'<div style="font-size:15px;line-height:1.75;color:var(--ink);margin-top:14px">'+eh(loc.desc)+'</div></div>'
+    +moreImgs
+    +'<div style="padding:0 24px 40px;margin-top:8px"><a href="https://www.google.com/maps/search/?api=1&query='+loc.lat+','+loc.lng+'" target="_blank" rel="noopener" style="font-size:13px;color:var(--accent)">View on Google Maps &#8599;</a></div>';
+  document.getElementById('cv-detail').classList.add('open');
+}
+function cvCloseDetail(){document.getElementById('cv-detail').classList.remove('open');}
+
+/* ─── CLIENT LIGHTBOX ─── */
+function cvOpenLightbox(locId,startIdx){var loc=findLoc(locId);if(!loc||!loc.photos.length)return;cvLbPhotos=loc.photos;cvLbIdx=startIdx;cvShowLb();document.getElementById('cv-lightbox').classList.add('open');}
+function cvShowLb(){var p=cvLbPhotos[cvLbIdx];document.getElementById('cv-lb-img').src=p.data;document.getElementById('cv-lb-caption').textContent=p.caption||'';document.getElementById('cv-lb-counter').textContent=(cvLbIdx+1)+' / '+cvLbPhotos.length;document.querySelector('#cv-lightbox .lb-prev').style.display=cvLbPhotos.length>1?'block':'none';document.querySelector('#cv-lightbox .lb-next').style.display=cvLbPhotos.length>1?'block':'none';}
+function cvLightboxNav(d){cvLbIdx=(cvLbIdx+d+cvLbPhotos.length)%cvLbPhotos.length;cvShowLb();}
+function cvCloseLightbox(){document.getElementById('cv-lightbox').classList.remove('open');}
+document.getElementById('cv-lightbox').addEventListener('click',function(e){if(e.target===this)cvCloseLightbox();});
+
+/* ─── CLIENT MAP ─── */
+function cvInitMap(){
+  if(typeof L==='undefined'){setTimeout(cvInitMap,150);return;}
+  cvMap=L.map('cv-map',{center:[46.82,8.3],zoom:8});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',maxZoom:19}).addTo(cvMap);
+  cvMapReady=true;cvDrawMap();
+}
+function cvDrawMap(){
+  if(!cvMapReady)return;
+  cvMap.eachLayer(function(l){if(!(l instanceof L.TileLayer))cvMap.removeLayer(l);});
+  var visible=cvVisible();
+  var toDraw=cvLinkTrail==='all'?trails:trails.filter(function(t){return t.id===parseInt(cvLinkTrail,10);});
+  var trailedIds=[];
+  toDraw.forEach(function(trail){
+    var coords=trail.stops.map(function(sid){var l=findLoc(sid);return(l&&visible.find(function(v){return v.id===sid;}))?[l.lat,l.lng]:null;}).filter(Boolean);
+    if(coords.length<2)return;
+    L.polyline(coords,{color:trail.color||'#4a7c59',weight:3.5,opacity:.7,dashArray:'6 4'}).addTo(cvMap);
+    trail.stops.forEach(function(sid,idx){
+      var l=findLoc(sid);if(!l||!visible.find(function(v){return v.id===sid;}))return;
+      trailedIds.push(sid);
+      var ic=L.divIcon({className:'',html:'<div style="width:26px;height:26px;background:'+trail.color+';border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.28)">'+(idx+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13],popupAnchor:[0,-14]});
+      var ph=l.photos&&l.photos.length?'<img src="'+l.photos[0].data+'" style="width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:6px;display:block">':'';
+      L.marker([l.lat,l.lng],{icon:ic}).addTo(cvMap).bindPopup('<div style="font-family:Jost,sans-serif;min-width:190px">'+ph+'<div style="font-size:12px;color:'+trail.color+';letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">Stop '+(idx+1)+' &middot; '+eh(trail.name)+'</div><div style="font-size:15px;font-weight:500;margin-bottom:4px">'+eh(l.name)+'</div><div style="font-size:12px;color:#888">'+eh(l.desc)+'</div></div>',{maxWidth:240});
+    });
+  });
+  visible.filter(function(l){return trailedIds.indexOf(l.id)===-1;}).forEach(function(loc){
+    var bg=loc.starred?'#c8a96e':'#4a7c59';
+    var ic=L.divIcon({className:'',html:'<div style="width:28px;height:28px;background:'+bg+';border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:'+(loc.starred?'14':'9')+'px;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.26)">'+(loc.starred?'&#9733;':'&bull;')+'</div>',iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-14]});
+    var ph=loc.photos&&loc.photos.length?'<img src="'+loc.photos[0].data+'" style="width:100%;height:80px;object-fit:cover;border-radius:4px;margin-bottom:8px;display:block">':'';
+    L.marker([loc.lat,loc.lng],{icon:ic}).addTo(cvMap).bindPopup('<div style="font-family:Jost,sans-serif;min-width:190px;max-width:250px">'+ph+'<div style="font-size:15px;font-weight:500;margin-bottom:4px;color:#1a1a18">'+eh(loc.name)+'</div><div style="font-size:12px;color:#888;margin-bottom:6px">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div><div style="font-size:13px;line-height:1.6;color:#444">'+eh(loc.desc)+'</div></div>',{maxWidth:250});
+  });
+}
+
+/* ─── UTILITIES ─── */
+function eh(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
+</script>
+</body>
+</html>
