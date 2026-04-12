@@ -117,6 +117,9 @@ html,body{height:100%;font-family:'Jost',sans-serif;background:var(--raised);col
   .tag.t-autumn{background:#2d1e0a;color:#ffb74d;border-color:#4a3010}
   .tag.t-spring{background:#2d1020;color:#f48fb1;border-color:#4a1530}
 }
+.tier-filter-btn{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:20px;border:1px solid var(--border-md);cursor:pointer;background:var(--surface);color:var(--muted);font-family:'Jost',sans-serif;transition:all .15s}
+.tier-filter-btn:hover{color:var(--ink);border-color:var(--border-md)}
+.tier-filter-btn.active{background:var(--ink);color:var(--surface);border-color:var(--ink)}
 .star-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--faint);padding:2px 4px;transition:color .15s;flex-shrink:0;line-height:1}
 .star-btn.active{color:var(--gold)}
 /* TIER BADGES */
@@ -357,6 +360,15 @@ html,body{height:100%;font-family:'Jost',sans-serif;background:var(--raised);col
   <!-- LOCATIONS PANEL -->
   <div id="panel-locations" class="panel">
     <div class="panel-inner">
+      <!-- TIER LEGEND -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:10px 14px;background:var(--raised);border-radius:8px;border:1px solid var(--border)">
+        <span style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-right:4px">Filter</span>
+        <button class="tier-filter-btn active" data-tier="all"    onclick="filterByTier('all',this)"    style="border-left:3px solid var(--border-md)">All</button>
+        <button class="tier-filter-btn"        data-tier="iconic" onclick="filterByTier('iconic',this)" style="border-left:3px solid #c8a96e">★ Iconic</button>
+        <button class="tier-filter-btn"        data-tier="hidden" onclick="filterByTier('hidden',this)" style="border-left:3px solid #4a7c59">◆ Hidden Gem</button>
+        <button class="tier-filter-btn"        data-tier="secret" onclick="filterByTier('secret',this)" style="border-left:3px solid #7c4a6b">● Secret</button>
+        <span style="font-size:11px;color:var(--faint);margin-left:4px" id="loc-count"></span>
+      </div>
       <div class="section-header">
         <div class="section-title">All Locations</div>
         <button class="add-btn" onclick="toggleLocForm()">+ Add location</button>
@@ -374,6 +386,14 @@ html,body{height:100%;font-family:'Jost',sans-serif;background:var(--raised);col
           <div><label class="form-label">Best season</label>
             <select class="form-input" id="f-season"><option>All year</option><option>Summer</option><option>Winter</option><option>Spring</option><option>Autumn</option></select></div>
           <div><label class="form-label">Region / label</label><input class="form-input" id="f-region" placeholder="e.g. Bernese Oberland"/></div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Location tier</label>
+          <select class="form-input" id="f-tier">
+            <option value="iconic">★ Iconic — well-known elopement spot</option>
+            <option value="hidden">◆ Hidden Gem — known but less visited</option>
+            <option value="secret">● Secret — undiscovered, your edge</option>
+          </select>
         </div>
         <div class="form-actions">
           <button class="btn-cancel" onclick="closeLocForm()">Cancel</button>
@@ -564,6 +584,7 @@ var cvMap=null, cvMapReady=false;
 var ownerMarkers={}, ownerLines={};
 var curFilter='all';
 var curDetailLocId=null;
+var curTierFilter='all';
 var trailFormStops=[], trailFormColor=TRAIL_COLORS[0], dragSrcIdx=null;
 var photoTargetLocId=null;
 var lbPhotos=[], lbIdx=0;
@@ -712,9 +733,16 @@ function rebuildPills(){
 function setFilter(f,btn){document.querySelectorAll('.filter-pill').forEach(function(p){p.classList.remove('active');});if(btn)btn.classList.add('active');curFilter=f;drawOwnerMap();}
 
 /* ─── LOCATIONS ─── */
+function filterByTier(t,btn){
+  curTierFilter=t;
+  document.querySelectorAll('.tier-filter-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  renderLocList();
+}
 function scClass(s){var m={summer:'t-summer',winter:'t-winter',autumn:'t-autumn',spring:'t-spring'};return m[(s||'').toLowerCase()]||'';}
 function tierLabel(t){return{iconic:'★ Iconic',hidden:'◆ Hidden Gem',secret:'● Secret'}[t]||'';}
 function tierClass(t){return{iconic:'t-iconic',hidden:'t-hidden',secret:'t-secret'}[t]||'';}
+function tierColor(t){return{iconic:'#c8a96e',hidden:'#4a7c59',secret:'#7c4a6b'}[t]||'var(--border-md)';}
 function tierBannerText(t){
   var m={
     iconic:'This is a well-known elopement destination. Beautiful and accessible — plan for early morning or shoulder season for privacy.',
@@ -724,12 +752,15 @@ function tierBannerText(t){
 }
 function renderLocList(){
   var el=document.getElementById('loc-list');
-  if(!locs.length){el.innerHTML='<div class="empty">No locations yet.</div>';return;}
-  el.innerHTML=locs.map(function(loc){
+  var filtered=locs.filter(function(l){return curTierFilter==='all'||l.tier===curTierFilter;});
+  var countEl=document.getElementById('loc-count');
+  if(countEl)countEl.textContent=filtered.length+' location'+(filtered.length!==1?'s':'');
+  if(!filtered.length){el.innerHTML='<div class="empty">No locations'+(curTierFilter!=='all'?' in this tier':' yet')+'.</div>';return;}
+  el.innerHTML=filtered.map(function(loc){
     var sc=scClass(loc.season);
     var inT=trails.filter(function(t){return t.stops.indexOf(loc.id)!==-1;});
     var th=loc.photos&&loc.photos.length?'<img class="loc-thumb" src="'+loc.photos[0].data+'" alt=""/>':'<div class="loc-thumb-empty">&#9968;</div>';
-    return '<div class="loc-item" onclick="openLocDetail('+loc.id+')">'
+    return '<div class="loc-item" onclick="openLocDetail('+loc.id+')" style="border-left:3px solid '+tierColor(loc.tier)+';padding-left:10px">'
       +th+'<div class="loc-info"><div class="loc-name">'+eh(loc.name)+'</div><div class="loc-sub">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div>'
       +'<div class="loc-tags">'+(loc.starred?'<span class="tag t-starred">&#9733; starred</span>':'')+'<span class="tag '+sc+'">'+eh(loc.season)+'</span>'
       +(loc.tier?'<span class="tag '+tierClass(loc.tier)+'">'+tierLabel(loc.tier)+'</span>':'')
@@ -750,7 +781,8 @@ function openLocDetail(id){
   }else{hw.innerHTML='';}
   document.getElementById('ld-name').textContent=loc.name;
   document.getElementById('ld-body').innerHTML=
-    '<div class="loc-tags" style="margin-bottom:4px">'+(loc.starred?'<span class="tag t-starred">&#9733; Starred</span>':'')+'<span class="tag '+sc+'">'+eh(loc.season)+'</span>'+(loc.region?'<span class="tag">'+eh(loc.region)+'</span>':'')
+    (loc.tier?'<div class="tier-banner '+loc.tier+'"><strong>'+tierLabel(loc.tier)+'</strong> &nbsp;'+tierBannerText(loc.tier)+'</div>':'')
+    +'<div class="loc-tags" style="margin-bottom:4px">'+(loc.starred?'<span class="tag t-starred">&#9733; Starred</span>':'')+'<span class="tag '+sc+'">'+eh(loc.season)+'</span>'+(loc.region?'<span class="tag">'+eh(loc.region)+'</span>':'')
     +inT.map(function(t){return '<span class="tag" style="border-left:3px solid '+t.color+'">'+eh(t.name)+'</span>';}).join('')+'</div>'
     +'<div class="detail-section"><div class="detail-section-lbl">About</div><div style="font-size:15px;line-height:1.7;color:var(--ink)">'+eh(loc.desc)+'</div></div>'
     +'<div class="detail-section"><div class="detail-section-lbl">Scouting photos'+(loc.photos&&loc.photos.length?' ('+loc.photos.length+')':'')+'</div>'
@@ -788,6 +820,7 @@ function editLocFromDetail(){
   document.getElementById('f-name').value=loc.name;document.getElementById('f-desc').value=loc.desc||'';
   document.getElementById('f-lat').value=loc.lat;document.getElementById('f-lng').value=loc.lng;
   document.getElementById('f-season').value=loc.season||'All year';document.getElementById('f-region').value=loc.region||'';
+  document.getElementById('f-tier').value=loc.tier||'iconic';
   document.getElementById('loc-add-form').classList.add('open');
   document.getElementById('loc-add-form').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -796,7 +829,7 @@ function toggleLocForm(){
   if(f.classList.contains('open')){closeLocForm();}
   else{document.getElementById('loc-form-title').textContent='New scouting location';document.getElementById('f-edit-id').value='';
     ['f-name','f-desc','f-lat','f-lng','f-region'].forEach(function(id){document.getElementById(id).value='';});
-    document.getElementById('f-season').value='All year';f.classList.add('open');}
+    document.getElementById('f-season').value='All year';document.getElementById('f-tier').value='iconic';f.classList.add('open');}
 }
 function closeLocForm(){document.getElementById('loc-add-form').classList.remove('open');}
 function saveLocForm(){
@@ -804,8 +837,8 @@ function saveLocForm(){
   if(!name){alert('Please enter a location name.');return;}
   if(isNaN(lat)||isNaN(lng)){alert('Please enter valid coordinates.\n\nTip: right-click in Google Maps to copy coordinates.');return;}
   if((lat<45.7||lat>47.9||lng<5.9||lng>10.6)&&!confirm('Coordinates appear outside Switzerland. Add anyway?'))return;
-  var d={name:name,lat:lat,lng:lng,desc:document.getElementById('f-desc').value,season:document.getElementById('f-season').value,region:document.getElementById('f-region').value};
-  if(eid){var loc=findLoc(parseInt(eid,10));if(loc){loc.name=d.name;loc.lat=d.lat;loc.lng=d.lng;loc.desc=d.desc;loc.season=d.season;loc.region=d.region;}toast('Location updated');}
+  var d={name:name,lat:lat,lng:lng,desc:document.getElementById('f-desc').value,season:document.getElementById('f-season').value,region:document.getElementById('f-region').value,tier:document.getElementById('f-tier').value};
+  if(eid){var loc=findLoc(parseInt(eid,10));if(loc){loc.name=d.name;loc.lat=d.lat;loc.lng=d.lng;loc.desc=d.desc;loc.season=d.season;loc.region=d.region;loc.tier=d.tier;}toast('Location updated');}
   else{d.id=nextLocId++;d.starred=false;d.notes='';d.photos=[];locs.push(d);toast('Location saved');}
   persist();closeLocForm();renderLocList();drawOwnerMap();
 }
@@ -1016,7 +1049,9 @@ function cvCardHtml(loc){
   var imgH=loc.photos&&loc.photos.length?'<img class="cv-card-img" src="'+loc.photos[0].data+'" alt=""/>':'<div class="cv-card-img-empty">&#9968;</div>';
   var tTags=trails.filter(function(t){return t.stops.indexOf(loc.id)!==-1;}).map(function(t){return '<span style="font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid '+t.color+';color:'+t.color+';letter-spacing:.06em;text-transform:uppercase">'+eh(t.name)+'</span>';}).join('');
   return '<div class="cv-card" onclick="cvOpenDetail('+loc.id+')">'+imgH
-    +'<div class="cv-card-body"><div class="cv-card-name">'+eh(loc.name)+'</div>'
+    +'<div class="cv-card-body">'
+    +(loc.tier?'<div class="cv-tier-badge '+loc.tier+'">'+tierLabel(loc.tier)+'</div>':'')
+    +'<div class="cv-card-name">'+eh(loc.name)+'</div>'
     +'<div class="cv-card-meta">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div>'
     +'<div class="cv-card-desc">'+eh(loc.desc)+'</div>'
     +'<div class="cv-card-footer">'+(loc.starred?'<span class="cv-star">&#9733; Recommended</span>':'')+(tTags?'<span style="display:flex;gap:4px;flex-wrap:wrap">'+tTags+'</span>':'')+(loc.photos&&loc.photos.length>1?'<span class="cv-photo-count">&#128247; '+loc.photos.length+'</span>':'')+'</div></div></div>';
@@ -1030,7 +1065,9 @@ function cvOpenDetail(id){
   var heroH=loc.photos&&loc.photos.length?'<img src="'+loc.photos[0].data+'" style="width:100%;height:280px;object-fit:cover;display:block;cursor:pointer" onclick="cvOpenLightbox('+id+',0)" alt=""/>':'<div style="width:100%;height:160px;background:var(--raised);display:flex;align-items:center;justify-content:center;font-size:48px;color:var(--faint)">&#9968;</div>';
   var moreImgs=loc.photos&&loc.photos.length>1?'<div style="padding:0 24px 16px"><div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">More photos</div><div class="cv-img-row">'+loc.photos.slice(1).map(function(p,i){return '<img src="'+p.data+'" onclick="cvOpenLightbox('+id+','+(i+1)+')" alt=""/>';}).join('')+'</div></div>':'';
   document.getElementById('cv-detail-body').innerHTML=
-    heroH+'<div style="padding:20px 24px 4px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:300;color:var(--ink);margin-bottom:4px">'+eh(loc.name)+'</div>'
+    heroH+'<div style="padding:20px 24px 4px">'
+    +(loc.tier?'<div class="cv-tier-badge '+loc.tier+'" style="margin-bottom:10px">'+tierLabel(loc.tier)+'</div>':'')
+    +'<div style="font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:300;color:var(--ink);margin-bottom:4px">'+eh(loc.name)+'</div>'
     +'<div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">'+eh(loc.region||'')+(loc.season?' &middot; <span style="color:'+sc+'">'+eh(loc.season)+'</span>':'')+'</div>'
     +inT.map(function(t){return '<span style="font-size:10px;padding:2px 10px;border-radius:20px;border:1px solid '+t.color+';color:'+t.color+';letter-spacing:.06em;text-transform:uppercase;margin-right:6px">'+eh(t.name)+'</span>';}).join('')
     +'<div style="font-size:15px;line-height:1.75;color:var(--ink);margin-top:14px">'+eh(loc.desc)+'</div></div>'
