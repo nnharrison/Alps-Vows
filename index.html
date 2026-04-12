@@ -119,6 +119,29 @@ html,body{height:100%;font-family:'Jost',sans-serif;background:var(--raised);col
 }
 .star-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--faint);padding:2px 4px;transition:color .15s;flex-shrink:0;line-height:1}
 .star-btn.active{color:var(--gold)}
+/* TIER BADGES */
+.tag.t-iconic{background:#fff8e6;color:#7a5500;border-color:#f0d080}
+.tag.t-hidden{background:#e8f0eb;color:#2f5239;border-color:#a8cbb4}
+.tag.t-secret{background:#f3e8f8;color:#5c2d7a;border-color:#c8a0e0}
+@media(prefers-color-scheme:dark){
+  .tag.t-iconic{background:#2e2200;color:#f0c040;border-color:#6a4a00}
+  .tag.t-hidden{background:#1a2e1e;color:#7ab88a;border-color:#2f5239}
+  .tag.t-secret{background:#2a1535;color:#c080e0;border-color:#5c2d7a}
+}
+.tier-banner{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:12px;line-height:1.5}
+.tier-banner.iconic{background:#fff8e6;border:1px solid #f0d080;color:#7a5500}
+.tier-banner.hidden{background:#e8f0eb;border:1px solid #a8cbb4;color:#2f5239}
+.tier-banner.secret{background:#f3e8f8;border:1px solid #c8a0e0;color:#5c2d7a}
+@media(prefers-color-scheme:dark){
+  .tier-banner.iconic{background:#2e2200;border-color:#6a4a00;color:#f0c040}
+  .tier-banner.hidden{background:#1a2e1e;border-color:#2f5239;color:#7ab88a}
+  .tier-banner.secret{background:#2a1535;border-color:#5c2d7a;color:#c080e0}
+}
+/* CLIENT VIEW TIER BADGE */
+.cv-tier-badge{display:inline-block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;font-family:'Jost',sans-serif;font-weight:500;margin-bottom:8px}
+.cv-tier-badge.iconic{background:#fff8e6;color:#7a5500;border:1px solid #f0d080}
+.cv-tier-badge.hidden{background:#e8f0eb;color:#2f5239;border:1px solid #a8cbb4}
+.cv-tier-badge.secret{background:#f3e8f8;color:#5c2d7a;border:1px solid #c8a0e0}
 
 /* DETAIL OVERLAY */
 .detail-overlay{position:absolute;inset:0;background:var(--surface);z-index:200;display:none;overflow-y:auto}
@@ -690,6 +713,15 @@ function setFilter(f,btn){document.querySelectorAll('.filter-pill').forEach(func
 
 /* ─── LOCATIONS ─── */
 function scClass(s){var m={summer:'t-summer',winter:'t-winter',autumn:'t-autumn',spring:'t-spring'};return m[(s||'').toLowerCase()]||'';}
+function tierLabel(t){return{iconic:'★ Iconic',hidden:'◆ Hidden Gem',secret:'● Secret'}[t]||'';}
+function tierClass(t){return{iconic:'t-iconic',hidden:'t-hidden',secret:'t-secret'}[t]||'';}
+function tierBannerText(t){
+  var m={
+    iconic:'This is a well-known elopement destination. Beautiful and accessible — plan for early morning or shoulder season for privacy.',
+    hidden:'This location is known to locals and adventurous photographers but rarely appears in mainstream elopement guides. A real find.',
+    secret:'This location is genuinely undiscovered for elopements. Virtually no other photographers are working here — your competitive edge.'
+  };return m[t]||'';
+}
 function renderLocList(){
   var el=document.getElementById('loc-list');
   if(!locs.length){el.innerHTML='<div class="empty">No locations yet.</div>';return;}
@@ -700,6 +732,7 @@ function renderLocList(){
     return '<div class="loc-item" onclick="openLocDetail('+loc.id+')">'
       +th+'<div class="loc-info"><div class="loc-name">'+eh(loc.name)+'</div><div class="loc-sub">'+eh(loc.region||'')+(loc.season?' &middot; '+eh(loc.season):'')+'</div>'
       +'<div class="loc-tags">'+(loc.starred?'<span class="tag t-starred">&#9733; starred</span>':'')+'<span class="tag '+sc+'">'+eh(loc.season)+'</span>'
+      +(loc.tier?'<span class="tag '+tierClass(loc.tier)+'">'+tierLabel(loc.tier)+'</span>':'')
       +(loc.photos&&loc.photos.length?'<span class="tag">&#128247; '+loc.photos.length+'</span>':'')
       +inT.map(function(t){return '<span class="tag" style="border-left:3px solid '+t.color+'">'+eh(t.name)+'</span>';}).join('')+'</div></div>'
       +'<button class="star-btn'+(loc.starred?' active':'')+'" onclick="event.stopPropagation();toggleStar('+loc.id+')">'+(loc.starred?'&#9733;':'&#9734;')+'</button></div>';
