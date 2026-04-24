@@ -587,8 +587,11 @@ function switchToTrail(trailId) {
   renderMapMarkers();
   const locs = locations.filter(l => l.trail === trailId);
   if (locs.length && mapInstance) {
-    const bounds = L.latLngBounds(locs.map(l => [l.lat, l.lng]));
-    mapInstance.fitBounds(bounds, { padding: [40, 40] });
+    setTimeout(() => {
+      mapInstance.invalidateSize();
+      const bounds = L.latLngBounds(locs.map(l => [l.lat, l.lng]));
+      mapInstance.fitBounds(bounds, { padding: [60, 60] });
+    }, 80);
   }
 }
 
